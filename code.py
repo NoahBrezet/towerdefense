@@ -4,18 +4,24 @@ import tty
 import sys
 import select
 
+lives = 3
 block = ["x"]
 up = [0,0]
 down = [0,11]
 left = [0,0]
 right = [0,2]
+bocktowerID = [-1,-1]
 path = []
-money = 15
+money = 40
 round = 1
 speed = 1.0
 turn = 0
 enemypath = []
 enemyhealth = []
+towerblock = []
+towerdmg = []
+towerrange = []
+towerrangetype = [] #di,sq, str
 
 path1 = [2,12,22,32,42,43,44,34,24,14,15,16,17,27,28,38,39,49,59,69,68,78,77,87,86,85,84,74,64,63,62,72,82,92]
 path2 = [2,12,22,23,24,14,15,16,17,27,28,38,39,49,59,69,68,78,77,87,86,85,84,83,82,92]
@@ -157,10 +163,10 @@ def update():
     with open("map.txt", "a") as f:
         string = string + "Money: " + str(money) + "\n"
         string = string + "Round: " + str(round) + "\n"
-        string = string + "Press 'p' to stop.\nPress 'e' to place a melee tower for 5 money.\nPress 'r' to place a ranged tower for 10 money.\n"
+        string = string + "Press 'p' to stop.\nPress '1' to place a farmer's hut for 15 money.\nPress '2' to place a archer tower for 25 money.\n"
         f.write(string)
 
-def place(x,cost):
+def place(x,cost,dmg,range,rangetype):
     global money
     if money < cost:
         return
@@ -178,9 +184,15 @@ def place(x,cost):
         column = int(column)
         row = int(row)
         if 1 <= column <= 10 and 2 <= row <= 11:
-            if block[(row-2)*10+column] == "□":
-                block[(row-2)*10+column] = x
+            n = (row-2)*10+column
+            if block[n] == "□":
+                block[n] = x
                 money -= cost
+                bocktowerID[n] = len(bocktowerID) - 1
+                towerblock.append(n)
+                towerdmg.append(dmg)
+                towerrange.append(range)
+                towerrangetype.append(rangetype)
 
 def layout(newpath, x):
     global path
@@ -197,6 +209,7 @@ for i in range(10):
     for j in range(10):
         block.append("□")
         index = len(block)
+        bocktowerID.append(-1)
         if index < 11:
             up.append(0)
         else:
@@ -217,7 +230,7 @@ for i in range(10):
 layout(path1, x1)
 
 with open("map.txt", "w") as f:
-    f.write("Welcome to Tower Defense!\nYou can place a melee tower with the 'e' key.\nYou can place a ranged tower with the 'r' key.\nPress 'p' to stop.\nPress any button to continue.")
+    f.write("Welcome to Tower Defense!\nYou can place a farmer's hut with the '1' key.\nYou can place a archer tower with the '2' key.\nPress 'p' to stop.\nPress any button to continue.")
 
 ainput()
 
@@ -226,28 +239,47 @@ while True:
     action = secinput(speed)
     if action == "p":
         exit()
-    elif action == "e":
-        place("e", 5)
-    elif action == "r":
-        place("r", 10)
+    elif action == "1":
+        place("H", 15, 12, 1, "di")
+    elif action == "2":
+        place("T", 25, 8, 2, "di")
     elif action == "n":
         round += 1
+        turn = 0
         if round == 4:
             layout(path2, x2)
         elif round == 11:
             layout(path3, x3)
     elif action is None:
         turn += 1
-        for i in range(len(enemypath)-1,0,-1): #bug first enemy not moving
+        for i in range(len(enemypath)-1,-1,-1):
             block[path[enemypath[i]]] = "■"
-            if enemypath[i] < len(path)-1 and enemyhealth[i] > 0:
+            if enemyhealth[i] <= 0:
+                enemypath.pop(i)
+                enemyhealth.pop(i)
+                money += 5
+            elif enemypath[i] < len(path)-1:
                 enemypath[i] += 1
                 block[path[enemypath[i]]] = "▼"
             else:
+                lives -= 1
+                if lives == 0:
+                    with open("map.txt", "w") as f:
+                        f.write("Game Over! You survived until round " + str(round) + ".")
+                    exit()
                 enemypath.pop(i)
                 enemyhealth.pop(i)
         if turn % 3 == 0 and turn <= 15*round:
             enemypath.append(0)
-            enemyhealth.append(8+round*2)
+            enemyhealth.append(36+round*2)
             block[path[0]] = "▼"
-
+        for i in range(len(towerblock)):
+            if towerrangetype[i] == "di":
+                hitarea = diamondrange(towerblock[i], towerrange[i])
+            elif towerrangetype[i] == "sq":
+                hitarea = squarerange(towerblock[i], towerrange[i])
+            elif towerrangetype[i] == "str":
+                hitarea = straightrange(towerblock[i], towerrange[i])
+            for j in range(len(enemypath)):
+                if path[enemypath[j]] in hitarea:
+                    enemyhealth[j] -= towerdmg[i]

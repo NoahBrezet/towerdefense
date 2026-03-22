@@ -9,8 +9,8 @@
 □ ■ □ ■ □ □ ■ ■ □ □ 
 □ ■ x ■ ■ ■ ■ □ □ x 
 □ ■ □ □ □ □ □ □ x x 
-Money: 15
+Money: 40
 Round: 1
 Press 'p' to stop.
-Press 'e' to place a melee tower for 5 money.
-Press 'r' to place a ranged tower for 10 money.
+Press '1' to place a farmer's hut for 15 money.
+Press '2' to place a archer tower for 25 money.
