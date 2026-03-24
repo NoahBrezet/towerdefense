@@ -24,8 +24,9 @@ towerdmg = []
 towerrange = []
 towerrangetype = [] #di,sq, str, money, boost
 
-class1 = "farm" #farm, castle, church, mage
-class2 = "castle"
+class1 = "" #farm, castle, church, mage
+class2 = ""
+ctowername = []
 ctower = []
 ctowercost = []
 ctowerdmg = []
@@ -171,9 +172,18 @@ def update():
     string = ""
     map()
     with open("map.txt", "a") as f:
+        string = "Lives: " + str(lives) + "\n"
         string = string + "Money: " + str(money) + "\n"
         string = string + "Round: " + str(round) + "\n"
-        string = string + "Press 'p' to stop.\nPress '1' to place a farmer's hut for 15 money.\nPress '2' to place a archer tower for 25 money.\n"
+        string = string + "Press 'p' to stop.\n"
+        string = string + f"Press '1' to place a {ctowername[0]} for {ctowercost[0]} money.\n"
+        string = string + f"Press '2' to place a {ctowername[3]} for {ctowercost[3]} money.\n"
+        if round > 3:
+            string = string + f"Press '3' to place a {ctowername[1]} for {ctowercost[1]} money.\n"
+            string = string + f"Press '4' to place a {ctowername[4]} for {ctowercost[4]} money.\n"
+        if round > 7:
+            string = string + f"Press '5' to place a {ctowername[2]} for {ctowercost[2]} money.\n"
+            string = string + f"Press '6' to place a {ctowername[5]} for {ctowercost[5]} money.\n"
         f.write(string)
 
 def boost_update():
@@ -198,27 +208,25 @@ def place(x,cost,dmg,range,rangetype):
     map()
     with open("map.txt", "a") as f:
         if x == "C":
-            string = "Name a column from 0 to 9 to place the top left corner of the cathedral.\n"
+            f.write("Name a column from 0 to 9 to place the top left corner of the cathedral.\n")
         else:
-            string = "Name a column from 0 to 9 to place the tower.\n"
-        f.write(string)
+            f.write("Name a column from 0 to 9 to place the tower.\n")
     column = ainput()
     map()
     with open("map.txt", "a") as f:
         if x == "C":
-            string = "Name a row from 0 to 9 to place the top left corner of the cathedral.\n"
+            f.write("Name a row from 0 to 9 to place the top left corner of the cathedral.\n")
         else:
-            string = "Name a row from 0 to 9 to place the tower.\n"
-        f.write(string)
+            f.write("Name a row from 0 to 9 to place the tower.\n")
     row = ainput()
     if column.isdigit() and row.isdigit():
         n = int(row)*10 + int(column) + 1
         if x == "C":
-            if block[n] != "□" or block[n+1] != "□" or block[n+10] != "□" or block[n+11] != "□":
+            if block[n] != "□" or block[down[n]] != "□" or block[right[n]] != "□" or block[down[right[n]]] != "□":
                 return
-            block[n+1] = x
-            block[n+10] = x
-            block[n+11] = x
+            block[down[n]] = x
+            block[right[n]] = x
+            block[down[right[n]]] = x
         elif block[n] != "□":
             return
         block[n] = x
@@ -266,60 +274,97 @@ for i in range(10):
 
 layout(path1, x1)
 
+with open("map.txt", "w") as f:
+    f.write("Welcome to Tower Defense!\nChoose 2 tower classes out of farm, castle, church, and mage to build your defenses with.\nPress '1' for farm, '2' for castle, '3' for church, and '4' for mage.\n")
+
+while True:
+    choice = ainput()
+    if choice == "1":
+        class1 = "farm"
+        break
+    elif choice == "2":
+        class1 = "castle"
+        break
+    elif choice == "3":
+        class1 = "church"
+        break
+    elif choice == "4":
+        class1 = "mage"
+        break
+
+while True:
+    choice = ainput()
+    if choice == "1":
+        class2 = "farm"
+        break
+    elif choice == "2":
+        class2 = "castle"
+        break
+    elif choice == "3":
+        class2 = "church"
+        break
+    elif choice == "4":
+        class2 = "mage"
+        break
+
 for i in [class1, class2]:
     if i == "farm":
+        ctowername.append("farmer's hut")
         ctower.append("H")
         ctowercost.append(15)
         ctowerdmg.append(12)
         ctowerrange.append(1)
         ctowerrangetype.append("di")
+        ctowername.append("farm")
         ctower.append("F")
         ctowercost.append(40)
         ctowerdmg.append(0)
         ctowerrange.append(0)
         ctowerrangetype.append("money")
+        ctowername.append("whomping willow")
         ctower.append("W")
         ctowercost.append(55)
         ctowerdmg.append(15)
         ctowerrange.append(3)
         ctowerrangetype.append("str")
     elif i == "castle":
+        ctowername.append("archer tower")
         ctower.append("T")
         ctowercost.append(25)
         ctowerdmg.append(6)
         ctowerrange.append(2)
         ctowerrangetype.append("di")
+        ctowername.append("armory")
         ctower.append("A")
-        ctowercost.append(30)
+        ctowercost.append(20)
         ctowerdmg.append(2)
         ctowerrange.append(2)
         ctowerrangetype.append("boost")
+        ctowername.append("bastion")
         ctower.append("B")
         ctowercost.append(35)
         ctowerdmg.append(15)
         ctowerrange.append(3)
         ctowerrangetype.append("str")
     elif i == "church":
+        ctowername.append("holy cross")
         ctower.append("+")
         ctowercost.append(10)
         ctowerdmg.append(6)
         ctowerrange.append(2)
         ctowerrangetype.append("str")
+        ctowername.append("cathedral")
         ctower.append("C")
-        ctowercost.append(75)
+        ctowercost.append(45)
         ctowerdmg.append(0)
         ctowerrange.append(0)
         ctowerrangetype.append("boost")
+        ctowername.append("crusader camp")
         ctower.append("Ʌ")
         ctowercost.append(30)
         ctowerdmg.append(12) 
         ctowerrange.append(1)
         ctowerrangetype.append("sq")
-
-with open("map.txt", "w") as f:
-    f.write("Welcome to Tower Defense!\nYou can place a farmer's hut with the '1' key.\nYou can place a archer tower with the '2' key.\nPress 'p' to stop.\nPress any button to continue.")
-
-ainput()
 
 while True:
     update()
@@ -355,6 +400,7 @@ while True:
     elif action is None:
         turn += 1
         for i in range(len(enemypath)-1,-1,-1):
+            save = block[path[enemypath[i]]]
             block[path[enemypath[i]]] = "■"
             if enemyhealth[i] <= 0:
                 enemypath.pop(i)
@@ -362,7 +408,7 @@ while True:
                 money += 2
             elif enemypath[i] < len(path)-1:
                 enemypath[i] += 1
-                block[path[enemypath[i]]] = "▼"
+                block[path[enemypath[i]]] = save
             else:
                 lives -= 1
                 if lives == 0:
@@ -372,9 +418,13 @@ while True:
                 enemypath.pop(i)
                 enemyhealth.pop(i)
         if turn % 3 == 0 and turn <= 15*round:
-            enemypath.append(0)
-            enemyhealth.append(36+round*2)
-            block[path[0]] = "▼"
+            enemypath.insert(0, 0)
+            enemyhealth.insert(0, 36+round*2)
+            block[path[0]] = "∆" #◊∆ 
+        if turn % 3 == 1 and turn >= 12*round and turn <= 20*(round-1):
+            enemypath.insert(0, 0)
+            enemyhealth.insert(0, 48+round*3)
+            block[path[0]] = "◊"
         for i in range(len(towerblock)):
             if towerrangetype[i] == "money"or towerrangetype[i] == "boost":
                 continue
